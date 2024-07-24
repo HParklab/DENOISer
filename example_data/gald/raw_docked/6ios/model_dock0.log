@@ -1,0 +1,515 @@
+protocols.jd2.PDBJobInputter: Instantiate PDBJobInputter
+protocols.jd2.PDBJobInputter: PDBJobInputter::fill_jobs
+protocols.jd2.PDBJobInputter: pushed holo.pdb nstruct index 1
+protocols.evaluation.ChiWellRmsdEvaluatorCreator: Evaluation Creator active ... 
+protocols.jd2.PDBJobInputter: PDBJobInputter::pose_from_job
+protocols.jd2.PDBJobInputter: filling pose from PDB holo.pdb
+protocols.rosetta_scripts.RosettaScriptsParser: dock_design_filename=/home/bbh9955/DfAF_git/src/data_preprocessing/run_docking/GALigandDock/dockflex.xml
+protocols.rosetta_scripts.RosettaScriptsParser: Validating input script...
+protocols.rosetta_scripts.RosettaScriptsSchemaValidator: Generating XML Schema for rosetta_scripts...
+protocols.rosetta_scripts.RosettaScriptsSchemaValidator: ...done
+protocols.rosetta_scripts.RosettaScriptsSchemaValidator: Initializing schema validator...
+protocols.rosetta_scripts.RosettaScriptsSchemaValidator: ...done
+protocols.rosetta_scripts.RosettaScriptsParser: ...done
+protocols.rosetta_scripts.RosettaScriptsParser: Parsed script:
+<ROSETTASCRIPTS>
+	<SCOREFXNS>
+		<ScoreFunction name="dockscore" weights="beta">
+			<Reweight scoretype="fa_rep" weight="0.2"/>
+			<Reweight scoretype="coordinate_constraint" weight="0.1"/>
+		</ScoreFunction>
+		<ScoreFunction name="relaxscore" weights="beta_cart">
+			<Reweight scoretype="coordinate_constraint" weight="0.1"/>
+		</ScoreFunction>
+	</SCOREFXNS>
+	<TASKOPERATIONS/>
+	<FILTERS/>
+	<MOVERS>
+		<GALigandDock cartmin_lig="1" name="dock" nativepdb="holo.pdb" runmode="dockflex" scorefxn="dockscore" scorefxn_relax="relaxscore">
+			<Stage npool="100" repeats="10" rmsdthreshold="2.0"/>
+		</GALigandDock>
+	</MOVERS>
+	<PROTOCOLS>
+		<Add mover="dock"/>
+	</PROTOCOLS>
+	<OUTPUT scorefxn="relaxscore"/>
+</ROSETTASCRIPTS>
+protocols.jd2.parser.ScoreFunctionLoader: defined score function "dockscore" with weights "beta"
+protocols.jd2.parser.ScoreFunctionLoader:  setting dockscore weight fa_rep to 0.2
+protocols.jd2.parser.ScoreFunctionLoader:  setting dockscore weight coordinate_constraint to 0.1
+protocols.jd2.parser.ScoreFunctionLoader: defined score function "relaxscore" with weights "beta_cart"
+protocols.jd2.parser.ScoreFunctionLoader:  setting relaxscore weight coordinate_constraint to 0.1
+protocols.ligand_docking.GALigandDock.GALigandDock: Using custom 1-stage protocol.
+protocols.rosetta_scripts.RosettaScriptsParser: Defined mover named "dock" of type GALigandDock
+protocols.rosetta_scripts.ParsedProtocol: ParsedProtocol mover with the following settings
+protocols.rosetta_scripts.ParsedProtocol: Added mover "dock"
+protocols.jd2.PDBJobInputter: PDBJobInputter::pose_from_job
+protocols.jd2.PDBJobInputter: filling pose from saved copy holo.pdb
+protocols.rosetta_scripts.ParsedProtocol: =======================BEGIN MOVER GALigandDock - dock=======================
+protocols.ligand_docking.GALigandDock.GALigandDock: Preparing grid using input pose 
+protocols.ligand_docking.GALigandDock.GridScorer:   ... built grid with 6 + 4 A radius; 0.25 A grid spacing
+protocols.ligand_docking.GALigandDock.GridScorer: Initial dimension: 80 x 80 x 80
+protocols.ligand_docking.GALigandDock.GridScorer: Initial origin = ( -21.9647,1.39106,-21.6502 )
+protocols.ligand_docking.GALigandDock.GALigandDock: Detect flexible sidechains with mode: aniso,  edge_buffer = 0
+protocols.ligand_docking.GALigandDock.GALigandDock: idx: 1,2,0
+protocols.ligand_docking.GALigandDock.GALigandDock: eigenvals = [ 1,0.601824,0.340177 ]
+protocols.ligand_docking.GALigandDock.GridScorer: Received 15 residues for grid calculation:  LG1 VAL GLU TRP TYR ARG TRP ASP ILE SER THR ILE SER PHE ASP
+protocols.ligand_docking.GALigandDock.GALigandDock: Re-optimizing hydrogens in whole structure.
+protocols.ligand_docking.GALigandDock.GALigandDock: Sidechain idealize score: -151.05->-263.552->-284.36
+protocols.ligand_docking.GALigandDock.GALigandDock: Build grid for 1 ligand residues and for 14 sidechain residues
+protocols.ligand_docking.GALigandDock.GALigandDock: Mobile sidechains: 238+78+80+85+91+96+98+116+117+118+119+123+125+141+143
+protocols.ligand_docking.GALigandDock.GridScorer: Building 80 x 80 x 80 grid; origin = ( -21.9647,1.39106,-21.6502 )
+protocols.ligand_docking.GALigandDock.GridScorer:    maxdis = 7.51668
+protocols.ligand_docking.GALigandDock.GridScorer:    subhash_buffer = 0.433013
+protocols.ligand_docking.GALigandDock.GridScorer:    hash_grid = 8
+protocols.ligand_docking.GALigandDock.GridScorer: Calculating gridded energies for 21 unique atom types
+protocols.ligand_docking.GALigandDock.GridScorer:   and lkb virtual parameters for 7 unique polar atom types
+protocols.ligand_docking.GALigandDock.GridScorer: Grid calculation took 52.0364 seconds.
+protocols.ligand_docking.GALigandDock.GALigandDock: Setting up Ligand aligner.
+protocols.ligand_docking.GALigandDock.GridScorer: Recalculating grids with smoothing of 0.75
+protocols.ligand_docking.GALigandDock.GridScorer:   ... built grid with 6 + 4 A radius; 0.5 A grid spacing
+protocols.ligand_docking.GALigandDock.GridScorer: Initial dimension: 40 x 40 x 40
+protocols.ligand_docking.GALigandDock.GridScorer: Initial origin = ( -21.9647,1.39106,-21.6502 )
+protocols.ligand_docking.GALigandDock.GridScorer: Received 15 residues for grid calculation:  LG1 VAL GLU TRP TYR ARG TRP ASP ILE SER THR ILE SER PHE ASP
+protocols.ligand_docking.GALigandDock.GridScorer: Building 40 x 40 x 40 grid; origin = ( -21.9647,1.39106,-21.6502 )
+protocols.ligand_docking.GALigandDock.GridScorer:    maxdis = 7.51668
+protocols.ligand_docking.GALigandDock.GridScorer:    subhash_buffer = 0.866025
+protocols.ligand_docking.GALigandDock.GridScorer:    hash_grid = 8
+protocols.ligand_docking.GALigandDock.GridScorer: Calculating gridded energies for 21 unique atom types
+protocols.ligand_docking.GALigandDock.GridScorer:   and lkb virtual parameters for 7 unique polar atom types
+protocols.ligand_docking.GALigandDock.GridScorer: Grid calculation took 10.9234 seconds.
+ligand_align: Defined 18 receptor Vsites.
+ligand_align: Made total 7 phores from 16 clusters.
+protocols.ligand_docking.GALigandDock.GALigandDock: Construct a separate grid for LigandAligner, with 0.5 grid step and no movable scs.
+ligand_align: Total 3 ligand phores defined:
+ligand_align: Ligand phore 1: L.O/L.OXT
+ligand_align: Ligand phore 2: L.O/L.H
+ligand_align: Ligand phore 3: L.H/L.H2
+ligand_align: Found 15 ligand-receptor phore matches.
+ligand_align: Small num. of n_phore_matches (<50); Nautogen set by 50
+protocols.ligand_docking.GALigandDock.GALigandDock: Automatically set nstruct-from-reference to 25 (from 50 trials) of total 100 left to sample.
+protocols.ligand_docking.GALigandDock.GALigandDock: Est. time for matching: 50~100 seconds...
+ligand_align: Istruct 1, apply pharmacophore match 1 (2/3<->11/9): L.O/L.OXT <-> 98.NE1/96.NE
+ligand_align:  5-18 3-11 2-9 4-14
+ligand_align: Istruct 2, apply pharmacophore match 2 (3/4<->5/6): L.OXT/L.H <-> 81.N/81.OD1
+ligand_align:  2-5 5-18 4-6 3-11
+ligand_align: Istruct 3, apply pharmacophore match 3 (4/5<->18/17): L.H/L.H2 <-> 143.OD2/143.OD2
+ligand_align:  4-18 5-17 3-11 2-9
+ligand_align: Istruct 4, apply pharmacophore match 4 (4/5<->16/14/15): L.H/L.H2 <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-14 5-16 2-9 3-11
+ligand_align: Istruct 5, apply pharmacophore match 5 (4/5<->16/14/15): L.H/L.H2 <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-14 5-16 2-9 3-11
+ligand_align: Istruct 6, apply pharmacophore match 6 (4/5<->3/4): L.H/L.H2 <-> 80.OE2/80.OE2
+ligand_align:  4-3 5-4 2-11 3-9
+ligand_align: Istruct 7, apply pharmacophore match 7 (4/5<->13/12): L.H/L.H2 <-> 112.O/111.OG1
+ligand_align:  5-13 4-12 3-9 2-10
+ligand_align: Istruct 8, apply pharmacophore match 8 (2/3<->5/6): L.O/L.OXT <-> 81.N/81.OD1
+ligand_align:  5-17 4-18 3-5 2-11
+ligand_align: Istruct 9, apply pharmacophore match 9 (3/4<->18/17): L.OXT/L.H <-> 143.OD2/143.OD2
+ligand_align:  5-18 4-17 2-5 3-9
+ligand_align: Istruct 10, apply pharmacophore match 10 (2/4<->7/1/2): L.O/L.H <-> 82.O/80.OE1/80.OE1
+ligand_align:  4-2 5-1 2-5 3-11
+ligand_align: Istruct 11, apply pharmacophore match 11 (2/4<->16/14/15): L.O/L.H <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-14 5-18 3-9 2-11
+ligand_align: Istruct 12, apply pharmacophore match 12 (3/4<->3/4): L.OXT/L.H <-> 80.OE2/80.OE2
+ligand_align:  4-4 5-2 2-11 3-9
+ligand_align: Istruct 13, apply pharmacophore match 5 (4/5<->3/4): L.H/L.H2 <-> 80.OE2/80.OE2
+ligand_align:  5-4 4-3 3-11 2-9
+ligand_align: Istruct 14, apply pharmacophore match 6 (4/5<->13/12): L.H/L.H2 <-> 112.O/111.OG1
+ligand_align:  4-13 5-12 2-9 3-11
+ligand_align: Istruct 15, apply pharmacophore match 15 (4/5<->5/6): L.H/L.H2 <-> 81.N/81.OD1
+ligand_align:  4-6 5-3 2-5 3-9
+ligand_align: Istruct 16, apply pharmacophore match 1 (2/3<->11/9): L.O/L.OXT <-> 98.NE1/96.NE
+ligand_align:  5-18 3-9 2-11 4-17
+ligand_align: Istruct 17, apply pharmacophore match 2 (3/4<->5/6): L.OXT/L.H <-> 81.N/81.OD1
+ligand_align:  2-5 4-6 5-1 3-11
+ligand_align: Istruct 18, apply pharmacophore match 3 (4/5<->18/17): L.H/L.H2 <-> 143.OD2/143.OD2
+ligand_align:  5-17 4-18 3-9 2-11
+ligand_align: Istruct 19, apply pharmacophore match 4 (4/5<->7/1/2): L.H/L.H2 <-> 82.O/80.OE1/80.OE1
+ligand_align:  5-1 4-2 2-5 3-11
+ligand_align: Istruct 20, apply pharmacophore match 5 (4/5<->16/14/15): L.H/L.H2 <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-16 5-14 2-9 3-11
+ligand_align: Istruct 21, apply pharmacophore match 6 (4/5<->3/4): L.H/L.H2 <-> 80.OE2/80.OE2
+ligand_align:  5-4 4-3 2-11 3-9
+ligand_align: Istruct 22, apply pharmacophore match 7 (4/5<->13/12): L.H/L.H2 <-> 112.O/111.OG1
+ligand_align:  4-13 5-12 2-10 3-9
+ligand_align: Istruct 23, apply pharmacophore match 8 (2/3<->5/6): L.O/L.OXT <-> 81.N/81.OD1
+ligand_align:  2-5 5-17 4-18 3-11
+ligand_align: Istruct 24, apply pharmacophore match 9 (3/4<->18/17): L.OXT/L.H <-> 143.OD2/143.OD2
+ligand_align:  4-17 5-18 3-5 2-9
+ligand_align: Istruct 25, apply pharmacophore match 10 (3/4<->7/1/2): L.OXT/L.H <-> 82.O/80.OE1/80.OE1
+ligand_align:  4-1 5-7 2-5 3-11
+ligand_align: Istruct 26, apply pharmacophore match 11 (2/4<->16/14/15): L.O/L.H <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-14 5-16 3-9 2-11
+ligand_align: Istruct 27, apply pharmacophore match 12 (2/4<->3/4): L.O/L.H <-> 80.OE2/80.OE2
+ligand_align:  4-3 5-4 3-11 2-9
+ligand_align: Istruct 28, apply pharmacophore match 13 (3/4<->13/12): L.OXT/L.H <-> 112.O/111.OG1
+ligand_align:  4-13 5-12 3-9 2-11
+ligand_align: Istruct 29, apply pharmacophore match 14 (2/4<->11/9): L.O/L.H <-> 98.NE1/96.NE
+ligand_align:  2-11 5-18 3-9 4-4
+ligand_align: Istruct 30, apply pharmacophore match 15 (4/5<->5/6): L.H/L.H2 <-> 81.N/81.OD1
+ligand_align:  4-6 2-5 5-17 3-11
+ligand_align: Istruct 31, apply pharmacophore match 1 (2/3<->11/9): L.O/L.OXT <-> 98.NE1/96.NE
+ligand_align:  3-9 5-18 2-11 4-14
+ligand_align: Istruct 32, apply pharmacophore match 2 (3/4<->5/6): L.OXT/L.H <-> 81.N/81.OD1
+ligand_align:  3-5 4-6 5-1 2-9
+ligand_align: Istruct 33, apply pharmacophore match 3 (4/5<->18/17): L.H/L.H2 <-> 143.OD2/143.OD2
+ligand_align:  5-18 3-11 4-17 2-9
+ligand_align: Istruct 34, apply pharmacophore match 4 (4/5<->7/1/2): L.H/L.H2 <-> 82.O/80.OE1/80.OE1
+ligand_align:  4-1 5-7 3-5 2-11
+ligand_align: Istruct 35, apply pharmacophore match 5 (4/5<->16/14/15): L.H/L.H2 <-> 143.OD1/125.OG/143.OD1
+ligand_align:  5-14 4-16 3-9 2-11
+ligand_align: Istruct 36, apply pharmacophore match 6 (4/5<->3/4): L.H/L.H2 <-> 80.OE2/80.OE2
+ligand_align:  4-4 5-3 2-11 3-9
+ligand_align: Istruct 37, apply pharmacophore match 7 (4/5<->13/12): L.H/L.H2 <-> 112.O/111.OG1
+ligand_align:  4-13 5-12 2-9 3-10
+ligand_align: Istruct 38, apply pharmacophore match 8 (2/3<->5/6): L.O/L.OXT <-> 81.N/81.OD1
+ligand_align:  2-5 5-1 4-6 3-9
+ligand_align: Istruct 39, apply pharmacophore match 9 (2/4<->18/17): L.O/L.H <-> 143.OD2/143.OD2
+ligand_align:  4-18 5-14 2-5 3-9
+ligand_align: Istruct 40, apply pharmacophore match 10 (2/4<->7/1/2): L.O/L.H <-> 82.O/80.OE1/80.OE1
+ligand_align:  4-1 5-2 3-5 2-11
+ligand_align: Istruct 41, apply pharmacophore match 11 (2/4<->16/14/15): L.O/L.H <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-16 5-14 3-9 2-11
+ligand_align: Istruct 42, apply pharmacophore match 12 (3/4<->3/4): L.OXT/L.H <-> 80.OE2/80.OE2
+ligand_align:  5-18 4-3 2-11 3-9
+ligand_align: Istruct 43, apply pharmacophore match 13 (2/4<->13/12): L.O/L.H <-> 112.O/111.OG1
+ligand_align:  4-13 5-12 3-9 2-11
+ligand_align: Istruct 44, apply pharmacophore match 14 (2/4<->11/9): L.O/L.H <-> 98.NE1/96.NE
+ligand_align:  2-11 4-18 5-16 3-9
+ligand_align: Istruct 45, apply pharmacophore match 15 (4/5<->5/6): L.H/L.H2 <-> 81.N/81.OD1
+ligand_align:  5-6 2-5 4-17 3-11
+ligand_align: Istruct 46, apply pharmacophore match 1 (2/3<->11/9): L.O/L.OXT <-> 98.NE1/96.NE
+ligand_align:  2-9 5-18 3-11 4-4
+ligand_align: Istruct 47, apply pharmacophore match 2 (2/4<->5/6): L.O/L.H <-> 81.N/81.OD1
+ligand_align:  4-6 2-5 5-1 3-11
+ligand_align: Istruct 48, apply pharmacophore match 3 (4/5<->18/17): L.H/L.H2 <-> 143.OD2/143.OD2
+ligand_align:  5-18 4-17 3-5 2-11
+ligand_align: Istruct 49, apply pharmacophore match 4 (4/5<->7/1/2): L.H/L.H2 <-> 82.O/80.OE1/80.OE1
+ligand_align:  5-1 4-2 2-5 3-11
+ligand_align: Istruct 50, apply pharmacophore match 5 (4/5<->16/14/15): L.H/L.H2 <-> 143.OD1/125.OG/143.OD1
+ligand_align:  4-14 5-16 3-9 2-11
+protocols.ligand_docking.GALigandDock.GALigandDock: Generate 0 structures using TorsionSampler for ligand aligner.
+protocols.ligand_docking.GALigandDock.GALigandDock: Ref scorecut = -114.533
+protocols.ligand_docking.GALigandDock.GALigandDock: Generate 0 structures using TorsionSampler for random structures.
+protocols.ligand_docking.GALigandDock.GALigandDock: Finished generating initial pool in 21.0669 seconds.
+protocols.ligand_docking.GALigandDock.GALigandDock:    # from inputs: 0
+protocols.ligand_docking.GALigandDock.GALigandDock:    # aligned to ref: 0
+protocols.ligand_docking.GALigandDock.GALigandDock:    # random placement: 75
+protocols.ligand_docking.GALigandDock.GAOptimizer: =====================================================================================
+protocols.ligand_docking.GALigandDock.GAOptimizer:   Stage 1 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     iterations = 10 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     pool size = 100 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     smoothing = 0 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     rms threshold = 2 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     P(mutation) = 0.2 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     minimizer steps = 50 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     pack cycles scaling = 100 : 
+protocols.ligand_docking.GALigandDock.GAOptimizer:     fa_rep ramping schedule : 
+protocols.ligand_docking.GALigandDock.GAOptimizer: =====================================================================================
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  78 VAL   1   1 0.2958 0.2958   1.78  178.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  78 VAL   2   0 0.2958 0.5917  -4.55   60.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  78 VAL   3   2 0.1125 0.7042  -2.59   58.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  78       4   0 0.2958 1.0000   0.00   60.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2   chi3  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   1   3 0.1080 0.1080  39.09  -63.7  -69.7   -9.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   2   0 0.1080 0.2161   5.28   74.6  175.8 -143.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   3  10 0.1043 0.3204  33.95  -63.7  -69.7  -33.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   4  15 0.0432 0.3636  66.91  -63.7  -69.7   17.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   5   1 0.0413 0.4049   2.44  -62.0 -179.3   -5.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   6   2 0.0317 0.4366   3.56   61.9 -178.0   -0.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   7  20 0.0303 0.4669  50.55  -63.7  -69.7  -62.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   8   6 0.0295 0.4964   4.55   61.9 -178.0   27.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU   9   5 0.0293 0.5258   2.45  -62.0 -179.3  -35.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  10   4 0.0288 0.5545   2.77  -62.0 -179.3   22.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  11   8 0.0279 0.5825   3.01  -62.0 -179.3  -64.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  12  18 0.0276 0.6101  52.39   57.8   84.7   20.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  13   9 0.0273 0.6374   5.44   61.9 -178.0   58.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  14  12 0.0255 0.6629   4.61   61.9 -178.0   88.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  15  11 0.0255 0.6884   4.38   61.9 -178.0  -61.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  16   7 0.0231 0.7115   4.32   61.9 -178.0  -30.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  17  14 0.0198 0.7312   3.68  -62.0 -179.3   84.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  18  13 0.0196 0.7509   3.65  -62.0 -179.3   53.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  19  27 0.0177 0.7686  44.33   57.8   84.7   -7.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  20  16 0.0176 0.7862   6.59  -61.6   85.0   31.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  21  26 0.0159 0.8021  67.44   57.8   84.7   46.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  22  23 0.0148 0.8170   8.36  -61.6   85.0   57.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  23  34 0.0127 0.8297   7.63   67.8  -80.0  -11.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  24  39 0.0124 0.8420   8.28   67.8  -80.0   15.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  25  35 0.0121 0.8541  89.93  -63.7  -69.7   49.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  26  25 0.0119 0.8660  93.86 -177.3   63.4   51.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  27  32 0.0096 0.8756  63.43 -177.3   63.4   21.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  28  28 0.0083 0.8840   6.79  -61.6   85.0    3.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80 GLU  29  40 0.0080 0.8920  83.45  -63.7  -69.7   84.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  80      30   0 0.1080 1.0000   0.00   74.6  175.8 -143.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   1   1 0.1433 0.1433  67.13  -69.1  100.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   2   0 0.1433 0.2866  -4.54 -174.6   73.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   3   2 0.0767 0.3633  -1.21 -179.0  -97.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   4   4 0.0677 0.4311  -0.51 -179.0   26.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   5  12 0.0597 0.4908   2.08 -179.0   -2.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   6   5 0.0562 0.5470  -1.09 -179.0 -117.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   7   3 0.0559 0.6029  71.75  -69.1   76.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   8  13 0.0469 0.6498  16.33  -69.1   41.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP   9   7 0.0446 0.6944   4.45  -69.1   11.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP  10  16 0.0390 0.7335   8.23 -179.0  -34.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP  11   9 0.0385 0.7720   0.95 -179.0  -68.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP  12  15 0.0330 0.8049  25.19  -69.1  122.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP  13  10 0.0288 0.8337   3.96  -69.1  -16.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85 TRP  14   6 0.0230 0.8567  -1.41 -179.0   53.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  85      15   0 0.1433 1.0000   0.00 -174.6   73.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2   chi3  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   1   1 0.1318 0.1318   0.00 -178.3   76.8  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   2   1 0.1318 0.2637  -0.07 -178.3   76.8    0.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   3   0 0.1318 0.3955  -4.18  170.7 -100.1   -1.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   4   5 0.0829 0.4784   0.61 -178.3  102.0    0.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   5   5 0.0829 0.5612   0.44 -178.3  102.0  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   6   3 0.0675 0.6288   4.13 -178.3   52.4    0.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   7   3 0.0675 0.6963   4.19 -178.3   52.4  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   8   8 0.0476 0.7439  81.38  -69.5  -27.8  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR   9   8 0.0476 0.7914  80.68  -69.5  -27.8    0.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR  10   7 0.0384 0.8298  18.30 -178.3   23.3    0.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91 TYR  11   7 0.0384 0.8682  18.15 -178.3   23.3  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  91      12   0 0.1318 1.0000   0.00  170.7 -100.1   -1.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2   chi3   chi4  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   1   1 0.0901 0.0901   4.64  -65.7  178.2  -66.5  172.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   2   0 0.0901 0.1803  -2.08  -54.0  -64.9  -66.7  163.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   3   3 0.0678 0.2481   7.32 -176.4  175.4  179.3 -178.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   4   2 0.0554 0.3035   0.56  -66.0 -179.9 -179.2  177.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   5   4 0.0438 0.3473   1.74  -65.8  178.1   66.7 -173.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   6   8 0.0417 0.3889   4.53 -178.3  175.0  -68.9  170.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   7   7 0.0399 0.4288   4.26 -172.2  174.2   67.0 -171.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   8  11 0.0363 0.4651   1.71  -61.2  -70.8 -175.6 -179.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG   9   5 0.0335 0.4986   1.26  -65.4 -178.1 -177.9  -86.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  10  13 0.0331 0.5318  15.31  -62.4  -64.8  -61.0  -84.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  11  12 0.0325 0.5643   5.47 -176.5  172.6   63.4   86.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  12   6 0.0321 0.5964  24.58  -64.9 -178.4  177.0   86.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  13  10 0.0292 0.6256   5.74 -175.5 -179.8  -64.4  -83.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  14  16 0.0256 0.6513   4.09  -60.6  -66.7  -63.7  172.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  15  15 0.0247 0.6760  51.26 -175.9  175.8  177.8   88.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  16  25 0.0241 0.7002  17.29 -179.5   73.6   66.8 -169.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  17  31 0.0236 0.7238   2.93  -62.1  -77.2   72.5   81.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  18   9 0.0235 0.7472   1.00  -65.0  177.4   65.1   86.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  19  30 0.0233 0.7705   6.70   67.3  177.9  177.0   86.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  20  18 0.0218 0.7923  21.10  -84.4   67.5  174.0  175.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  21  21 0.0194 0.8117   5.10 -176.3  177.9  -64.6  105.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  22  22 0.0168 0.8285   6.72  -68.7 -178.9  -68.2  106.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  23  19 0.0145 0.8429   1.94  -60.1  -68.5  179.5   88.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  24  29 0.0117 0.8546  17.35 -176.7   70.4   61.2   84.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  25  32 0.0116 0.8662  70.58   67.6 -175.6 -176.8  -84.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  26  24 0.0116 0.8779   3.08  -61.3  -68.4 -173.5  -87.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  27  23 0.0112 0.8890   2.38  -64.3  179.7   63.6 -106.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  28  28 0.0106 0.8996   8.30   66.2 -177.5 -179.7 -178.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96 ARG  29  26 0.0103 0.9099   6.33 -174.9  177.5   67.2 -107.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  96      30   0 0.0901 1.0000   0.00  -54.0  -64.9  -66.7  163.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  98 TRP   1   8 0.3109 0.3109  -4.87   67.1  -92.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  98 TRP   2   0 0.3109 0.6218  -6.85   51.8  -95.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  98 TRP   3  23 0.0673 0.6891   3.10   67.1   87.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: |  98       4   0 0.3109 1.0000   0.00   51.8  -95.6
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   1   6 0.1516 0.1516   0.78 -174.6   83.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   2   0 0.1516 0.3033   0.10 -179.9   58.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   3   5 0.1460 0.4492   5.65  -70.0  -16.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   4   4 0.1014 0.5507   0.24 -174.6  -67.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   5   8 0.0769 0.6276   2.05 -174.6   55.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   6  10 0.0532 0.6808   7.68  -70.0    8.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   7   2 0.0524 0.7332   1.22 -174.6  -36.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   8   7 0.0494 0.7825   6.75  -70.0  -44.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP   9   1 0.0401 0.8226   0.81 -174.6   -7.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116 ASP  10   3 0.0257 0.8484   2.33 -174.6   22.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 116      11   0 0.1516 1.0000   0.00 -179.9   58.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   1   3 0.1865 0.1865   4.09 -165.5   64.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   2   0 0.1865 0.3731   0.85 -163.1  170.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   3   5 0.1815 0.5546   2.31   65.4  171.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   4   2 0.1129 0.6674   3.24  -62.8  -59.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   5   4 0.0833 0.7507   2.75 -163.3  168.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117 ILE   6   1 0.0627 0.8135   2.71  -67.0  169.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 117       7   0 0.1865 1.0000   0.00 -163.1  170.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   1   1 0.1432 0.1432   0.24  -65.6   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   2   1 0.1432 0.2865   0.36  -65.6  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   3   1 0.1432 0.4297   0.09  -65.6  300.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   4   0 0.1432 0.5729  -0.99   73.4  -71.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   5   2 0.0602 0.6332   0.45  179.7   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   6   2 0.0602 0.6934   0.37  179.7  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   7   2 0.0602 0.7537   0.91  179.7  300.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   8   3 0.0516 0.8052   0.81   64.1   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118 SER   9   3 0.0516 0.8568  -0.03   64.1  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 118      10   0 0.1432 1.0000   0.00   73.4  -71.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   1   1 0.1807 0.1807  -0.78   61.5   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   2   1 0.1807 0.3613  -1.95   61.5  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   3   1 0.1807 0.5420  -0.87   61.5  300.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   4   0 0.1807 0.7227  -3.16   60.6  -69.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   5   2 0.0483 0.7710  21.52  -60.1   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119 THR   6   2 0.0483 0.8193  22.20  -60.1  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 119       7   0 0.1807 1.0000   0.00   60.6  -69.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 123 ILE   1   1 0.2710 0.2710  -4.06   61.6  171.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 123 ILE   2   0 0.2710 0.5420  -5.90   64.5  165.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 123 ILE   3   3 0.1197 0.6617   4.04   59.4   85.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 123 ILE   4   4 0.0673 0.7290  15.61   66.2  -71.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 123       5   0 0.2710 1.0000   0.00   64.5  165.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   1   2 0.1240 0.1240   1.76  -62.7   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   2   2 0.1240 0.2480   3.53  -62.7  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   3   2 0.1240 0.3720   0.92  -62.7  300.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   4   0 0.1240 0.4960  -0.20  -60.6  -93.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   5   3 0.0822 0.5781   2.93   63.6   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   6   3 0.0822 0.6603   3.47   63.6  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   7   3 0.0822 0.7425   2.05   63.6  300.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   8   1 0.0667 0.8093   2.95  177.6   60.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125 SER   9   1 0.0667 0.8760   2.89  177.6  180.0
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 125      10   0 0.1240 1.0000   0.00  -60.6  -93.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   1   1 0.1471 0.1471  35.86  -65.5   92.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   2   0 0.1471 0.2941  -4.40   65.2  -91.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   3   4 0.1181 0.4122   4.06  178.2   78.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   4   3 0.0927 0.5049  41.13  -65.5  119.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   5   2 0.0725 0.5774  35.49  -65.5   71.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   6   6 0.0718 0.6492  52.18  -65.5  -27.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   7   9 0.0589 0.7081  46.24  -65.5    1.8
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   8   5 0.0574 0.7655  32.81  178.2  101.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE   9  10 0.0481 0.8136  43.99  -65.5   36.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141 PHE  10   8 0.0394 0.8529  -2.41   63.1   90.9
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 141      11   0 0.1471 1.0000   0.00   65.2  -91.5
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: | RESIDUE   i irot prob   aprob  score   chi1   chi2  
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   1   1 0.1563 0.1563   2.85  -69.9  -16.3
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   2   0 0.1563 0.3126   0.94  -66.0  -19.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   3   5 0.1369 0.4495   8.80 -174.4   83.2
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   4   6 0.0942 0.5437   5.49 -174.4  -67.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   5   7 0.0738 0.6175  17.88 -174.4   55.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   6   2 0.0555 0.6730   3.57  -69.9  -44.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   7   9 0.0543 0.7274   4.32  -69.9    8.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   8   4 0.0514 0.7787   6.22 -174.4  -36.7
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP   9   3 0.0406 0.8194   7.14 -174.4   -7.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143 ASP  10   8 0.0244 0.8437  13.23 -174.4   22.1
+protocols.ligand_docking.GALigandDock.GAOptimizer: | 143      11   0 0.1563 1.0000   0.00  -66.0  -19.4
+protocols.ligand_docking.GALigandDock.GAOptimizer: -------------------------------------------------------------------
+protocols.ligand_docking.GALigandDock.GAOptimizer: Built 167 rotamers with E<100 and cumulative P<0.9
+protocols.ligand_docking.GALigandDock.RotamerData: Initialized 113568 byte rotamer interaction table.
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 pre-refine pack/min time = 16.5932s / 58.713s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 1 pack/min time = 15.4908s / 38.011s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 2 pack/min time = 15.4644s / 31.6141s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 3 pack/min time = 16.4996s / 30.7028s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 4 pack/min time = 15.5242s / 31.1267s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 5 pack/min time = 15.7153s / 32.7497s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 6 pack/min time = 15.5327s / 26.732s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 7 pack/min time = 14.7058s / 24.5198s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 8 pack/min time = 14.7037s / 22.5567s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 9 pack/min time = 14.7064s / 25.2817s
+protocols.ligand_docking.GALigandDock.GAOptimizer: Stage 1 iter 10 pack/min time = 14.7868s / 25.9161s
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 111.146
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 123.2
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 123.894
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 124.243
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 128.648
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 128.405
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 125.421
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 126.196
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 130.011
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 132.391
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 123.687
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 129.005
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 130.4
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 125.695
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 128.025
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 132.478
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 123.72
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 121.751
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 134.361
+protocols.ligand_docking.GALigandDock.GALigandDock: Adding constraints to protein CAs before final relax...
+protocols.ligand_docking.GALigandDock.GALigandDock: Added 32 coord constraints to the pose.
+protocols::checkpoint: Deleting checkpoints of FastRelax
+protocols.ligand_docking.GALigandDock.GALigandDock: final_cartmin: score after relax: 134.741
+protocols.rosetta_scripts.ParsedProtocol: setting status to success
+protocols.jd2.JobDistributor: model_dock0.holo_0001 reported success in 847 seconds
+protocols.jd2.JobDistributor: no more batches to process... 
+protocols.jd2.JobDistributor: 1 jobs considered, 1 jobs attempted in 858 seconds

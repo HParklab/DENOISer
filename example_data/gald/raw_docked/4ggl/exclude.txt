@@ -1,0 +1,2 @@
+4ggl_protein_new.pdb
+LG_0001.pdb

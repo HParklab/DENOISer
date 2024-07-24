@@ -1,0 +1,20 @@
+name: denoiser
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - wandb
+  - tqdm
+  - matplotlib
+  - seaborn
+  - pandas
+  - rdkit=2023.9
+  - cairo=1.18.0
+  - numpy=1.24.4
+  - scipy
+  - backports=1.0
+  - backports.functools_lru_cache=1.6.4
+
+  - pip
+  - pip:
+    - easydict==1.11

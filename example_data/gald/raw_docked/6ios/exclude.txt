@@ -1,0 +1,2 @@
+6ios_protein_new.pdb
+LG_0001.pdb

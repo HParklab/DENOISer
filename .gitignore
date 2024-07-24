@@ -1,0 +1,10 @@
+notebooks
+scripts/analysis
+.vscode
+relax.sh
+src/denoiser/__pycache__
+src/denoiser/models/__pycache__
+src/denoiser/preprocess/__pycache__/
+*.pyc
+src/denoiser.egg-info
+temp.py
