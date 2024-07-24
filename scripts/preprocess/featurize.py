@@ -289,8 +289,8 @@ def featurize_receptor(
 
 def featurize_complexes(
     input_path: Path,
+    prefix: str,
     output_path: Optional[Path] = None,
-    outprefix: Optional[str] = None,
     paramspath: Optional[str] = None,
     native_structure: Optional[str] = None,
     exclude: Optional[str] = None,
@@ -309,8 +309,6 @@ def featurize_complexes(
     output_path = output_path.absolute()
     if paramspath is None:
         paramspath = input_path
-    if outprefix is None:
-        outprefix = input_path.name
     if exclude is not None:
         with open(os.path.join(input_path, exclude)) as f:
             exclude_list = [t.strip() for t in f.readlines()]
@@ -336,7 +334,7 @@ def featurize_complexes(
     if cross_docking:
         rep_xyz_rec0, atmres_rec = featurize_receptor(
             input_path,
-            "%s/%s.prop.npz" % (output_path, outprefix),
+            "%s/%s.prop.npz" % (output_path, prefix),
             pdb=ligpdbs[0].split("/")[-1],
         )  # decoy
         xyz_rec0, native_atmres_rec = featurize_receptor(
@@ -355,7 +353,7 @@ def featurize_complexes(
         native_atmres_rec = t_atmres_rec
     else:
         xyz_rec0, atmres_rec = featurize_receptor(
-            input_path, "%s/%s.prop.npz" % (output_path, outprefix), pdb=pdb
+            input_path, "%s/%s.prop.npz" % (output_path, prefix), pdb=pdb
         )  # native or decoy
         native_atmres_rec = atmres_rec
 
@@ -467,7 +465,7 @@ def featurize_complexes(
         return
 
     np.savez(
-        "%s/%s.lig.npz" % (output_path, outprefix),
+        "%s/%s.lig.npz" % (output_path, prefix),
         aas_lig=aas_lig,
         xyz=xyz_lig,
         xyz_rec=xyz_rec,
@@ -486,6 +484,7 @@ def main():
     parser.add_argument(
         "-i", "--input", help="Target directory containing only decoys to be re-scored"
     )
+    parser.add_argument("--prefix")
     parser.add_argument(
         "-o",
         "--output",
@@ -512,6 +511,7 @@ def main():
 
     featurize_complexes(
         input_path=Path(args.input),
+        prefix=args.prefix,
         output_path=out_path,
         native_structure=args.native,
         exclude=args.exclude,

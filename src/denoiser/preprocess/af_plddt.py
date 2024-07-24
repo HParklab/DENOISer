@@ -10,10 +10,12 @@ class ExtractAFpLDDT:
     def __init__(
         self,
         input_path: Path,
+        prefix: str,
         save_path: Optional[Path] = None,
         af_model: Optional[str] = None,
     ):
         self.input_path = input_path
+        self.prefix = prefix
         if save_path is None:
             save_path = input_path
         self.save_path = save_path
@@ -46,7 +48,3 @@ class ExtractAFpLDDT:
             f"Select {retval} to extract pLDDT and save. If no AF model is provided, plDDT is set to 1."
         )
         return retval
-
-    @property
-    def prefix(self) -> str:
-        return self.input_path.name

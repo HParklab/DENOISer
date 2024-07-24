@@ -25,6 +25,7 @@ class Preprocess:
     def __init__(
         self,
         input_path: Path,
+        prefix: str,
         output_path: Optional[Path] = None,
         af_plddt_save_path: Optional[Path] = None,
         af_model: Optional[str] = None,
@@ -53,7 +54,7 @@ class Preprocess:
             os.makedirs(output_path)
         self.ligand_name = ligand_name
         self.af_model = af_model
-        self.plddt_extract = ExtractAFpLDDT(input_path, af_plddt_save_path, af_model)
+        self.plddt_extract = ExtractAFpLDDT(input_path, prefix, af_plddt_save_path, af_model)
         if str(self.input_path) == str(self.output_path):
             original_pdbs_dir = "./original_pdbs"
             self.ligand_param = LigandParams(
@@ -335,6 +336,7 @@ class Preprocess:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input")
+    parser.add_argument("--prefix")
     parser.add_argument(
         "-o",
         "--output",
@@ -396,6 +398,7 @@ def main():
 
     preprocess = Preprocess(
         input_path=Path(args.input),
+        prefix=args.prefix,
         output_path=Path(args.output),
         af_plddt_save_path=Path(args.out_af),
         af_model=args.af_model,
