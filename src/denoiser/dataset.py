@@ -704,24 +704,24 @@ class LocalDataset(torch.utils.data.Dataset):
         """
         Using AF feature as extra features.
         """
-        af_feature_path = Path(self.AF_plddt_path)
+        af_feature_path = Path(self.AF_plddt_path) if self.AF_plddt_path is not None else self.AF_plddt_path
 
-        try:
-            if training and ("native_dock" in sname or "near_native.native" in sname):
-                af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
-            elif af_feature_path is None:
-                af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
-            else:
-                af_feature = np.load(af_feature_path.joinpath(f"{pname}_conf.npy"))
-                af_feature = af_feature[prop["residue_idx"]]
-            lig_feature = np.zeros(
-                [samples["xyz"].shape[1], af_feature.shape[-1]]
-            )  # samples['xyz'].shape[1]: ligand atom num
-            af_feature = np.concatenate([lig_feature, af_feature], axis=0)
+        # try:
+        if training and ("native_dock" in sname or "near_native.native" in sname):
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        elif af_feature_path is None:
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        else:
+            af_feature = np.load(af_feature_path.joinpath(f"{pname}_conf.npy"))
+            af_feature = af_feature[prop["residue_idx"]]
+        lig_feature = np.zeros(
+            [samples["xyz"].shape[1], af_feature.shape[-1]]
+        )  # samples['xyz'].shape[1]: ligand atom num
+        af_feature = np.concatenate([lig_feature, af_feature], axis=0)
 
-            input_features.append(af_feature)
-        except:
-            return None
+        input_features.append(af_feature)
+        # except:
+        #     return None
 
         return input_features
 
@@ -1491,6 +1491,7 @@ class EnergyDataset(torch.utils.data.Dataset):
         # Rosetta_energy
         rosetta_e = self.select_energy(samples_ros, sname)
         if rosetta_e is None:
+            print("Raise error in getting rosetta Energy.")
             return self._skip_getitem(info)
 
         # aa type should directly from feature instead
@@ -1532,6 +1533,7 @@ class EnergyDataset(torch.utils.data.Dataset):
         atypes = np.eye(max(gentype2num.values()) + 1)[atypes_int]
 
         if samples["xyz_rec"].shape[1] != prop["xyz_rec"].shape[0]:
+            print("The size of the receptors is different.")
             return self._skip_getitem(info)
 
         sasa = []
@@ -1878,22 +1880,22 @@ class EnergyDataset(torch.utils.data.Dataset):
         """
         af_feature_path = Path(self.AF_plddt_path)
 
-        try:
-            if training and ("native_dock" in sname or "near_native.native" in sname):
-                af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
-            elif af_feature_path is None:
-                af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
-            else:
-                af_feature = np.load(af_feature_path.joinpath(f"{pname}_conf.npy"))
-                af_feature = af_feature[prop["residue_idx"]]
-            lig_feature = np.zeros(
-                [samples["xyz"].shape[1], af_feature.shape[-1]]
-            )  # samples['xyz'].shape[1]: ligand atom num
-            af_feature = np.concatenate([lig_feature, af_feature], axis=0)
+        # try:
+        if training and ("native_dock" in sname or "near_native.native" in sname):
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        elif af_feature_path is None:
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        else:
+            af_feature = np.load(af_feature_path.joinpath(f"{pname}_conf.npy"))
+            af_feature = af_feature[prop["residue_idx"]]
+        lig_feature = np.zeros(
+            [samples["xyz"].shape[1], af_feature.shape[-1]]
+        )  # samples['xyz'].shape[1]: ligand atom num
+        af_feature = np.concatenate([lig_feature, af_feature], axis=0)
 
-            input_features.append(af_feature)
-        except:
-            return None
+        input_features.append(af_feature)
+        # except:
+        #     return None
 
         return input_features
 

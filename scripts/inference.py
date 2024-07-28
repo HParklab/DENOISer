@@ -83,7 +83,7 @@ def set_each_params(local_args):
     }
 
     generator_params = {
-        "num_workers": 8,
+        "num_workers": local_args.ncpu,
         "pin_memory": True,
         "collate_fn": collate,
         "batch_size": 1,
@@ -262,10 +262,11 @@ def main():
         set_each_params(local_args)
     )
     model, energy_model = load_model(model_params, energy_model_params)
-    print("Device:", DEVICE)
+    print("\nDevice:", DEVICE)
+    print("Warning: --AF is not given. plDDT will be set to ones\n")
 
     data_params.root_dir = Path(local_args.input_features)
-    plddt_path = Path(local_args.AF) if local_args.AF is not None else plddt_path
+    plddt_path = Path(local_args.AF) if local_args.AF is not None else local_args.AF
     data_params.AF_plddt_path = plddt_path
     data_params.ros_dir = local_args.energy
     self_docking_mode = local_args.self_docking
@@ -299,8 +300,11 @@ def main():
                     model, energy_model, generator, self_docking_mode, no_gald
                 )
 
-        except:
+        except Exception as e:
             print(f"Raise Error in {target}. Skip")
+            if local_args.debug:
+                print(e)
+                break
             continue
 
     print("Done! Run time:", time.time() - stime, " seconds")

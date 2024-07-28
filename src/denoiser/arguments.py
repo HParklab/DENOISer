@@ -8,6 +8,8 @@ def set_arguments():
     parser.add_argument("--energy", default=None)
     parser.add_argument("--self-docking", action="store_true")
     parser.add_argument("--no-gald", action="store_true")
+    parser.add_argument("--ncpu", type=int, default=8)
+    parser.add_argument("--debug", action="store_true")
 
     # Local model
     parser.add_argument("--lr", default=6 * 1.0e-4)
