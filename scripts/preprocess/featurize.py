@@ -295,6 +295,7 @@ def featurize_complexes(
     native_structure: Optional[str] = None,
     exclude: Optional[str] = None,
     cross_docking: bool = False,
+    no_gald: bool = False,
 ) -> None:
     """
     Generate input files for the model inference. (lig.npz, prop.npz)
@@ -335,7 +336,7 @@ def featurize_complexes(
         rep_xyz_rec0, atmres_rec = featurize_receptor(
             input_path,
             "%s/%s.prop.npz" % (output_path, prefix),
-            pdb=ligpdbs[0].split("/")[-1],
+            pdb=pdb,
         )  # decoy
         xyz_rec0, native_atmres_rec = featurize_receptor(
             input_path,
@@ -367,6 +368,10 @@ def featurize_complexes(
         _aas_lig = [_aas[i] for i, rc in enumerate(_reschains) if rc in _reschains_lig]
         args = read_ligand_params(_xyz, _aas_lig, _reschains_lig, extrapath=paramspath)
         _ligatms, _, _, _bnds_lig, _, native_atmres_lig = args
+        _ligatms = [atm for atm in _ligatms if not atm.startswith("H")]
+        native_atmres_lig = [
+            (res, atm) for (res, atm) in native_atmres_lig if not atm.startswith("H")
+        ]
         xyz_lig = np.array([_xyz[res][atm] for res, atm in native_atmres_lig])
         contacts, dco = get_native_info(xyz_rec0, xyz_lig, _bnds_lig, _ligatms)
 
@@ -405,20 +410,33 @@ def featurize_complexes(
             else:
                 _, _, _, _, _, atmres_lig = args
             # Receptor atom coordinates
+            if no_gald:
+                _xyz_rec = np.array(
+                    [
+                        _xyz[res][atm]
+                        for res, atm in atmres_rec
+                        if res in _xyz.keys() and atm in _xyz[res].keys()
+                    ]
+                )
+            else:
+                _xyz_rec = np.array(
+                    [_xyz[res][atm] for res, atm in atmres_rec if res in _xyz.keys()]
+                )
+            # Ligand atom coordinates
+            _xyz_lig = np.array([_xyz[res][atm] for res, atm in atmres_lig])
+            read_first = False
+
             if training:
                 _fnat_xyz_rec = []
-                for res, atm in native_atmres_rec:
+                # for res, atm in native_atmres_rec:
+                for res, atm in atmres_rec:
                     if res not in _xyz.keys():
                         continue
                     if atm not in _xyz[res].keys():
                         continue
                     _fnat_xyz_rec.append(_xyz[res][atm])
                 _fnat_xyz_rec = np.array(_fnat_xyz_rec)
-            _xyz_rec = np.array(
-                [_xyz[res][atm] for res, atm in atmres_rec if res in _xyz.keys()]
-            )
-            # Ligand atom coordinates
-            if training:
+
                 _fnat_xyz_lig = []
                 for res, atm in native_atmres_lig:
                     if res not in _xyz.keys():
@@ -427,8 +445,6 @@ def featurize_complexes(
                         continue
                     _fnat_xyz_lig.append(_xyz[res][atm])
                 _fnat_xyz_lig = np.array(_fnat_xyz_lig)
-            _xyz_lig = np.array([_xyz[res][atm] for res, atm in atmres_lig])
-            read_first = False
 
         except:
             print("Error occured while reading %s: skip." % pdb)
@@ -506,6 +522,11 @@ def main():
         action="store_true",
         help="(Optinal) Option for calculating complex lDDT for the cross-docking task. It is calculated taking into account differences in amino acid sequence.",
     )
+    parser.add_argument(
+        "--no-gald",
+        action="store_true",
+        help="(Optinal) To escape strict receptor hydrogen condition.",
+    )
     args = parser.parse_args()
     out_path = Path(args.output) if args.output is not None else args.output
 
@@ -516,6 +537,7 @@ def main():
         native_structure=args.native,
         exclude=args.exclude,
         cross_docking=args.cross_docking,
+        no_gald=args.no_gald,
     )
 
 
