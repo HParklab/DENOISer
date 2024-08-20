@@ -54,7 +54,9 @@ class Preprocess:
             os.makedirs(output_path)
         self.ligand_name = ligand_name
         self.af_model = af_model
-        self.plddt_extract = ExtractAFpLDDT(input_path, prefix, af_plddt_save_path, af_model)
+        self.plddt_extract = ExtractAFpLDDT(
+            input_path, prefix, af_plddt_save_path, af_model
+        )
         if str(self.input_path) == str(self.output_path):
             original_pdbs_dir = "./original_pdbs"
             self.ligand_param = LigandParams(
@@ -234,7 +236,7 @@ class Preprocess:
                     continue
                 if PDBLP.atom_name(line) in chain_num_atom[chain_num]:
                     new_protein_lines.append(line)
-            # new_protein_lines = [l for l in new_lines if l.startswith("ATOM") and 
+            # new_protein_lines = [l for l in new_lines if l.startswith("ATOM") and
             #                      PDBLP.atom_name(l) in chain_num_atom[PDBLP.chain_name(l) + "." + str(PDBLP.residue_num(l))]]
             f.writelines(new_protein_lines)
             new_ligand_lines = [l for l in new_lines if l.startswith("HETATM")]
