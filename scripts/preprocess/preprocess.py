@@ -5,7 +5,7 @@ import sys
 import argparse
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from denoiser.utils.train_utils import files_only_pdb
 from denoiser.utils.chem_utils import (
@@ -212,10 +212,30 @@ class Preprocess:
             _, ref_seq, tar_seq = needleman_wunsch(ref_seq, tar_seq)
         else:
             _, tar_seq, ref_seq = needleman_wunsch(tar_seq, ref_seq)
+        # Rep decoy
+        chain_num_atom: dict[str, List[str]] = {}
+        with open(rep_pdb) as f:
+            for line in f:
+                if not line.startswith("ATOM"):
+                    continue
+                chain_num = PDBLP.chain_name(line) + "." + str(PDBLP.residue_num(line))
+                if chain_num not in chain_num_atom:
+                    chain_num_atom[chain_num] = []
+                chain_num_atom[chain_num].append(PDBLP.atom_name(line))
         # Native
         new_lines = pdb_seq_align(native, ref_seq)
         with open(native, "w") as f:
-            new_protein_lines = [l for l in new_lines if l.startswith("ATOM")]
+            new_protein_lines = []
+            for line in new_lines:
+                if not line.startswith("ATOM"):
+                    continue
+                chain_num = PDBLP.chain_name(line) + "." + str(PDBLP.residue_num(line))
+                if chain_num not in chain_num_atom:
+                    continue
+                if PDBLP.atom_name(line) in chain_num_atom[chain_num]:
+                    new_protein_lines.append(line)
+            # new_protein_lines = [l for l in new_lines if l.startswith("ATOM") and 
+            #                      PDBLP.atom_name(l) in chain_num_atom[PDBLP.chain_name(l) + "." + str(PDBLP.residue_num(l))]]
             f.writelines(new_protein_lines)
             new_ligand_lines = [l for l in new_lines if l.startswith("HETATM")]
             f.writelines(new_ligand_lines)
