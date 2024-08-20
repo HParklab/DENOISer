@@ -262,8 +262,11 @@ def main():
         set_each_params(local_args)
     )
     model, energy_model = load_model(model_params, energy_model_params)
-    print("\nDevice:", DEVICE)
-    print("Warning: --AF is not given. plDDT will be set to ones\n")
+    print("\n" + "-" * 40)
+    print("Device:", DEVICE)
+    print("Num.threads:", torch.get_num_threads(), "\n")
+    print("Warning: --AF is not given. plDDT will be set to ones")
+    print("-" * 40, "\n")
 
     data_params.root_dir = Path(local_args.input_features)
     plddt_path = Path(local_args.AF) if local_args.AF is not None else local_args.AF
