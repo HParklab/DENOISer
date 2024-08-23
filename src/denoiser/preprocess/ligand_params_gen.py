@@ -79,7 +79,7 @@ class LigandParams:
                             if is_float(line.split()[-1]):
                                 atom = PDBLP.atom_name(line)
                                 atom = re.sub(r"[0-9]", "", atom)
-                                pad = (78 - len(line)) * " "
+                                pad = (78 - len(line) - len(atom) + 1) * " "
                                 line = line.strip() + pad + atom + "\n"
                             f1.write(line)
                     if line.startswith("CONECT"):
