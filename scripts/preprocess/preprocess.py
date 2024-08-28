@@ -5,6 +5,7 @@ import sys
 import argparse
 import shutil
 from pathlib import Path
+import re
 from typing import Optional, List
 
 from denoiser.utils.train_utils import files_only_pdb
@@ -82,9 +83,7 @@ class Preprocess:
         self.skip_ligand_processing = skip_ligand_processing
         self.cross_docking = cross_docking
 
-        self.complex_to_extract_ligand = None
-        if complex_to_extract_ligand is not None:
-            print("Ligand extract", self.complex_to_extract_ligand)
+        self.complex_to_extract_ligand = complex_to_extract_ligand
 
     def run(self) -> None:
         # Remain protein chains only in 15A from the center of ligand
@@ -184,7 +183,10 @@ class Preprocess:
                             line = line[:21] + "X" + line[22:]
                             # For duplicated atom types in the ligand
                             if not self.skip_ligand_processing:
-                                ligand_atom = PDBLP.atom_name(line)[:2]
+                                # ligand_atom = PDBLP.atom_name(line)[:2]
+                                ligand_atom = re.sub(
+                                    r"[^a-zA-Z]", "", PDBLP.atom_name(line)
+                                )
                                 if ligand_atom not in ligand_atoms_num.keys():
                                     ligand_atoms_num[ligand_atom] = 0
                                 else:

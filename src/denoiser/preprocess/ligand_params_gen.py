@@ -51,6 +51,8 @@ class LigandParams:
         os.chdir(self.input_path)
         if complex_pdb is None:
             complex_pdb = self.output_path.joinpath("holo.pdb")
+        print("Ligand extract from", complex_pdb)
+
         if self.ligand_mol2 is None:
             self.extract_ligand(complex_pdb, self.ligand_name)
             self.pdb2mol2(self.add_h)
