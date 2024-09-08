@@ -704,7 +704,11 @@ class LocalDataset(torch.utils.data.Dataset):
         """
         Using AF feature as extra features.
         """
-        af_feature_path = Path(self.AF_plddt_path) if self.AF_plddt_path is not None else self.AF_plddt_path
+        af_feature_path = (
+            Path(self.AF_plddt_path)
+            if self.AF_plddt_path is not None
+            else self.AF_plddt_path
+        )
 
         # try:
         if training and ("native_dock" in sname or "near_native.native" in sname):
@@ -1086,6 +1090,413 @@ class LocalDataset(torch.utils.data.Dataset):
         return False, False, False, info
 
 
+class LocalDatasetFineTune(LocalDataset):
+    def __getitem__(self, index):
+        info = {}
+        info["sname"] = "none"
+        if self.sample_mode == "serial":
+            ip = int(index / self.nsamples_per_p)
+            pname = self.proteins[ip]
+        else:
+            pname = self.proteins[index]
+        info["pname"] = pname
+
+        fname = self.datadir / (pname + ".lig.npz")
+        if not os.path.exists(fname):
+            return self._skip_getitem(info)
+        try:
+            if self.rosdata_dir is not None:
+                samples_ros = self.get_all_energy(pname)
+            samples, native_samples, dock_class, pindex = self.get_a_sample(
+                pname, index
+            )
+            prop = np.load(self.datadir / (pname + ".prop.npz"), allow_pickle=True)
+            prop = prop[dock_class].tolist()
+        except Exception as e:
+            print("raise error:", e)
+            return LocalDataset._skip_getitem(info)
+
+        sname = samples["name"][pindex].reshape(self.subset_size, -1)
+        info["pindex"] = pindex
+        info["sname"] = sname
+
+        # Receptor features (prop)
+        charges_rec, atypes_rec, aas_rec, repsatm_idx, r2a, sasa_rec, reschain = (
+            self.receptor_features(prop)
+        )
+
+        # Ligand features (lig)
+        (
+            xyz_ligs,
+            xyz_recs,
+            lddt,
+            fnat,
+            atypes_lig,
+            bnds_lig,
+            charges_lig,
+            aas_lig,
+            repsatm_lig,
+        ) = self.per_ligand_features(samples, pindex)
+        if len(bnds_lig) == 0:
+            return self._skip_getitem(info)
+
+        # Rosetta_energy
+        if self.rosdata_dir is not None:
+            rosetta_e = self.select_energy(samples_ros, sname)
+            if rosetta_e is None:
+                return self._skip_getitem(info)
+        else:
+            rosetta_e = [[0.0, 0.0, 0.0, 0.0] for _ in range(len(sname))]
+
+        aas = np.concatenate([aas_lig, aas_rec]).astype(int)
+        aas1hot = np.eye(N_AATYPE)[aas]
+
+        # Representative atoms
+        r2a = np.concatenate([np.array([0 for _ in range(xyz_ligs.shape[1])]), r2a])
+        r2a1hot = np.eye(max(r2a) + 1)[r2a]
+        repsatm_idx = np.concatenate(
+            [
+                np.array(repsatm_lig),
+                np.array(repsatm_idx, dtype=int) + xyz_ligs.shape[1],
+            ]
+        )  # shape: (subset_size, num_atom_rep)
+
+        # Bond properties
+        bnds_rec = prop["bnds_rec"] + xyz_ligs.shape[1]  # shift index;
+
+        # Concatenate receptor & ligand: ligand comes first
+        charges = np.expand_dims(np.concatenate([charges_lig, charges_rec]), axis=1)
+        if self.normalize_q:
+            charges = 1.0 / (1.0 + np.exp(-2.0 * charges))
+
+        islig = np.array(
+            [1 for _ in range(xyz_ligs.shape[1])]
+            + [0 for _ in range(xyz_recs.shape[1])]
+        )
+        islig = np.expand_dims(islig, axis=1)
+
+        xyz = np.concatenate([xyz_ligs, xyz_recs], axis=1)
+        atypes = np.concatenate([atypes_lig, atypes_rec])
+        if "Null" in atypes:
+            print("There is 'Null' atom types in the PDB file. Skip this.")
+            return self._skip_getitem(info)
+        w_vdw = torch.tensor([self.W[atype] for atype in list(atypes)])  # vdw depth
+        s_vdw = torch.tensor([self.S[atype] for atype in list(atypes)])  # vdw radius
+
+        atypes_int = np.array(
+            [find_gentype2num(at) for at in atypes]
+        )  # string to integers
+        atypes = np.eye(max(gentype2num.values()) + 1)[atypes_int]
+
+        if samples["xyz_rec"].shape[1] != prop["xyz_rec"].shape[0]:
+            return self._skip_getitem(info)
+
+        sasa = []
+        sasa_lig = np.array([0.5 for _ in range(xyz_ligs.shape[1])])  # neutral value
+        sasa = np.concatenate([sasa_lig, sasa_rec])
+        sasa = np.expand_dims(sasa, axis=1)
+        bnds = np.concatenate([bnds_lig, bnds_rec])
+
+        # Xtal properties
+        if self.training:
+            if "near_native.native" not in list(native_samples["name"]):
+                return self._skip_getitem(info)
+            xtal_xyz_ligs = self.xtal_ligand_coordinate(
+                native_samples
+            )  # [N_lig_atom, 3]
+            if not isinstance(xtal_xyz_ligs, np.ndarray) and xtal_xyz_ligs is None:
+                return self._skip_getitem(info)
+            if xtal_xyz_ligs.shape[0] != xyz_ligs.shape[1]:
+                return self._skip_getitem(info)
+            xtal_xyz_recs = prop["xyz_rec"]  # [N_rec_atom, 3]
+            xtal_xyz_ligs = np.repeat(
+                np.expand_dims(xtal_xyz_ligs, axis=0), repeats=self.subset_size, axis=0
+            )  # [subset_size, N_lig_atom, 3]
+            xtal_xyz_recs = np.repeat(
+                np.expand_dims(xtal_xyz_recs, axis=0), repeats=self.subset_size, axis=0
+            )  # [subset_size, N_rec_atom, 3]
+
+        # Generate masks
+        hbond_mask, polar_apolar_mask, apolar_apolar_mask, distance_map = (
+            self.interaction_masks(
+                atypes_int, islig, xyz_ligs, xyz_recs, charges_lig, charges_rec
+            )
+        )
+        if self.training:
+            (
+                xtal_hbond_mask,
+                xtal_polar_apolar_mask,
+                xtal_apolar_apolar_mask,
+                xtal_distance_map,
+            ) = self.interaction_masks(
+                atypes_int,
+                islig,
+                xtal_xyz_ligs,
+                xtal_xyz_recs,
+                charges_lig,
+                charges_rec,
+            )
+
+        # orient around ligand-COM
+        center_xyz = np.mean(xyz_ligs, axis=1)
+        center_xyz = np.expand_dims(center_xyz, axis=1)
+        xyz = xyz - center_xyz
+        xyz_ligs = xyz_ligs - center_xyz
+        center_xyz[:, :, :] = 0.0
+
+        ball_xyzs = []
+        if self.ballmode == "com":
+            ball_xyzs = [center_xyz]
+        elif self.ballmode == "all":
+            ball_xyzs = [[a[None, :] for a in xyz_lig] for xyz_lig in xyz_ligs]
+
+        # randomize coordinate
+        if self.randomize > 1e-3:
+            # randxyz = 2.0*self.randomize*(0.5 - np.random.rand(self.subset_size, xyz.shape[1],3)) # -0.2 ~ 0.2
+            randxyz = self.randomize * np.random.randn(
+                self.subset_size, xyz.shape[1], 3
+            )
+            xyz = xyz + randxyz
+
+        resfeat = [islig, aas1hot, sasa]
+        resfeat_extra = []  # from res-index
+
+        if self.use_AF:
+            # Dims: islig(1) + aas1hot(21) + atypes(65) + charges(1) -> 88
+            input_features = [islig, aas1hot, atypes, charges]
+
+            # AF features (dim=1) -> 89
+            input_features = self.add_extra_features(
+                input_features, pname, sname, prop, samples, self.training
+            )
+            if input_features is None:
+                return LocalDataset._skip_getitem(info)
+
+            G_atm_list, G_high_atm_list, idx_ord_list = [], [], []
+            dist_idx_ord_list = []
+            for idx in range(self.subset_size):
+                G_atm, G_high_atm, idx_ord = self.make_atm_graphs(
+                    xyz[idx],
+                    ball_xyzs[idx],
+                    input_features,
+                    bnds,
+                    xyz_ligs.shape[1],
+                    atypes_int,
+                    charges,
+                    s_vdw,
+                    w_vdw,
+                )
+                dist_idx_ord = self.get_nearest_protein_atom_index(
+                    xyz[idx], ball_xyzs[idx], distance=self.distance_map_dist
+                )
+                G_atm_list.append(G_atm)
+                G_high_atm_list.append(G_high_atm)
+                idx_ord_list.append(idx_ord)
+                dist_idx_ord_list.append(dist_idx_ord)
+        else:
+            G_atm_list, G_high_atm_list, idx_ord_list = [], [], []
+            for idx in range(self.subset_size):
+                G_atm, G_high_atm, idx_ord = self.make_atm_graphs(
+                    xyz[idx],
+                    ball_xyzs[idx],
+                    [
+                        islig,
+                        aas1hot,
+                        atypes,
+                        charges,
+                    ],  # dims: islig(1) + aas1hot(33) + atypes(65) + charges(1) -> 100
+                    bnds,
+                    xyz_ligs.shape[1],
+                    atypes_int,
+                    charges,
+                    s_vdw,
+                    w_vdw,
+                )
+                G_atm_list.append(G_atm)
+                G_high_atm_list.append(G_high_atm)
+                idx_ord_list.append(idx_ord)
+
+        # Re-indexing masks
+        hbond_mask_list, polar_apolar_mask_list, apolar_apolar_mask_list = [], [], []
+        distance_map_list = []
+        rec_idx_list = []
+        if self.training:
+            (
+                xtal_hbond_mask_list,
+                xtal_polar_apolar_mask_list,
+                xtal_apolar_apolar_mask_list,
+            ) = [], [], []
+            xtal_distance_map_list = []
+
+        N_lig_atoms = xyz_ligs.shape[1]
+        for n, idx_ord in enumerate(
+            idx_ord_list
+        ):  # idx_ord: Atom's indexes in Atom graph
+            rec_idx_ord = (np.array(idx_ord[N_lig_atoms:]) - N_lig_atoms).astype(int)
+            dist_rec_idx_ord = (
+                np.array(dist_idx_ord_list[n][N_lig_atoms:]) - N_lig_atoms
+            ).astype(int)
+            if len(dist_rec_idx_ord) == 0 or min(dist_rec_idx_ord) < 0:
+                return LocalDataset._skip_getitem(info)
+            if ("Graph" not in G_atm.__class__.__name__) or not (
+                G_atm_list[n].number_of_nodes() == len(rec_idx_ord) + N_lig_atoms
+            ):
+                return LocalDataset._skip_getitem(info)
+
+            rec_idx = np.array(
+                [idx for idx, num in enumerate(rec_idx_ord) if num in dist_rec_idx_ord]
+            )
+            rec_idx_list.append(rec_idx)
+            hbond_mask_list.append(hbond_mask[n][:, rec_idx_ord])
+            polar_apolar_mask_list.append(polar_apolar_mask[n][:, rec_idx_ord])
+            apolar_apolar_mask_list.append(apolar_apolar_mask[n][:, rec_idx_ord])
+            distance_map_list.append(distance_map[n][:, dist_rec_idx_ord])
+            if self.training:
+                xtal_hbond_mask_list.append(xtal_hbond_mask[n][:, rec_idx_ord])
+                xtal_polar_apolar_mask_list.append(
+                    xtal_polar_apolar_mask[n][:, rec_idx_ord]
+                )
+                xtal_apolar_apolar_mask_list.append(
+                    xtal_apolar_apolar_mask[n][:, rec_idx_ord]
+                )
+                xtal_distance_map_list.append(xtal_distance_map[n][:, dist_rec_idx_ord])
+
+        info["islig"] = torch.tensor(islig).float()
+
+        # Reorder by where atm idx in G_atm are
+        rsds_ord_list = [r2a[idx_ord] for idx_ord in idx_ord_list]
+        G_res_list, r2amap_list = [], []
+        for idx in range(self.subset_size):
+            G_res, r2amap = self.make_res_graph(
+                xyz[idx],
+                center_xyz[idx],
+                resfeat,
+                repsatm_idx,
+                rsds_ord_list[idx],
+                resfeat_extra,
+            )
+            G_res_list.append(G_res)
+            r2amap_list.append(r2amap)
+
+        # store which indices go to ligand atms
+        ligidx_list, high_ligidx_list = [], []
+        for idx in range(self.subset_size):
+            ligidx = np.zeros((len(idx_ord_list[idx]), xyz_ligs.shape[1]))
+            high_ligidx = np.zeros(
+                (G_high_atm_list[idx].num_nodes(), xyz_ligs.shape[1])
+            )
+            for i in range(xyz_ligs.shape[1]):
+                ligidx[i, i] = 1.0
+                high_ligidx[i, i] = 1.0
+            ligidx_list.append(torch.tensor(ligidx).float())
+            high_ligidx_list.append(torch.tensor(high_ligidx).float())
+        info["ligidx"] = ligidx_list
+        info["high_ligidx"] = high_ligidx_list
+
+        info["fnat"] = torch.tensor(fnat).float()
+        info["lddt"] = torch.tensor(lddt).float()
+        info["rosetta_e"] = torch.tensor(np.array(rosetta_e)).float()
+        info["r2amap"] = [torch.tensor(r2amap).float() for r2amap in r2amap_list]
+        info["r2a"] = torch.tensor(r2a1hot).float()
+        info["repsatm_idx"] = torch.tensor(repsatm_idx).float()
+        info["hbond_masks"] = [torch.tensor(mask).float() for mask in hbond_mask_list]
+        info["polar_apolar_masks"] = [
+            torch.tensor(mask).float() for mask in polar_apolar_mask_list
+        ]
+        info["apolar_apolar_masks"] = [
+            torch.tensor(mask).float() for mask in apolar_apolar_mask_list
+        ]
+        info["distance_masks"] = [
+            torch.tensor(mask).float() for mask in distance_map_list
+        ]
+        info["dist_rec_indices"] = [
+            torch.tensor(rec_idx).long() for rec_idx in rec_idx_list
+        ]
+        if self.training:
+            info["xtal_hbond_masks"] = [
+                torch.tensor(mask).float() for mask in xtal_hbond_mask_list
+            ]
+            info["xtal_polar_apolar_masks"] = [
+                torch.tensor(mask).float() for mask in xtal_polar_apolar_mask_list
+            ]
+            info["xtal_apolar_apolar_masks"] = [
+                torch.tensor(mask).float() for mask in xtal_apolar_apolar_mask_list
+            ]
+            info["xtal_distance_masks"] = [
+                torch.tensor(mask).float() for mask in xtal_distance_map_list
+            ]
+
+        return G_atm_list, G_res_list, G_high_atm_list, info
+
+    def get_a_sample(self, pname, index):
+        samples = np.load(self.datadir / (pname + ".lig.npz"), allow_pickle=True)
+        # Set docking class in ['generated_ligands', 'model_dock', 'native_dock']
+        dock_classes = list(samples)
+
+        def prob_map(x):
+            if "generated" in x or "model" in x:
+                p = 1.0
+            else:
+                p = 0.1
+            return p
+
+        p = np.array(list(map(prob_map, dock_classes)))
+        p /= sum(p)
+        dock_class = np.random.choice(dock_classes, p=p)
+        native_samples = samples["native_dock"].tolist()
+        samples = samples[dock_class].tolist()
+
+        pindices = list(range(len(samples["name"])))
+        fnats = samples["fnat"]
+        if self.sample_mode == "random":
+            pindex = np.random.choice(
+                pindices, size=self.subset_size, replace=False, p=self.upsample(fnats)
+            )
+        elif self.sample_mode == "serial":
+            pindex = [index % len(pindices)]
+        return samples, native_samples, dock_class, pindex
+
+    def add_extra_features(
+        self, input_features, pname, sname, prop, samples, training: bool = False
+    ):
+        af_feature_path = (
+            Path(self.AF_plddt_path)
+            if self.AF_plddt_path is not None
+            else self.AF_plddt_path
+        )
+        sname = sname[0, 0]
+
+        if "native_dock" in sname or "near_native.native" in sname:
+            dir_name = "native_dock"
+        elif "model_dock_corina" in sname:
+            dir_name = "generated_ligands"
+        else:
+            dir_name = "model_dock"
+
+        if training and ("native_dock" in sname or "near_native.native" in sname):
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        elif af_feature_path is None:
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        else:
+            af_feature = np.load(
+                af_feature_path.joinpath(dir_name, f"{pname}_conf.npy")
+            )
+            af_feature = af_feature[prop["residue_idx"]]
+        lig_feature = np.zeros(
+            [samples["xyz"].shape[1], af_feature.shape[-1]]
+        )  # samples['xyz'].shape[1]: ligand atom num
+        af_feature = np.concatenate([lig_feature, af_feature], axis=0)
+
+        input_features.append(af_feature)
+
+        return input_features
+
+    def xtal_ligand_coordinate(self, samples: np.ndarray) -> np.ndarray:
+        idx = list(samples["name"]).index("near_native.native")  # native structure
+        native_ligand_xyz = samples["xyz"][idx]
+        return native_ligand_xyz
+
+
 def sample_uniform(fnats: np.ndarray):
     return np.array([1.0 for _ in fnats]) / len(fnats)
 
@@ -1331,8 +1742,14 @@ def load_dataset(
     split_path: Path,
     generator_params: EasyDict,
     setsuffix: str = "Clean_MT2",
+    gen_fine_tune: bool = False,
 ):
-    train_set = LocalDataset(
+    if gen_fine_tune:
+        dataset_cls = LocalDatasetFineTune
+    else:
+        dataset_cls = LocalDataset
+
+    train_set = dataset_cls(
         np.load(split_path.joinpath(f"train{setsuffix}.npy")),
         training=True,
         **set_params,
@@ -1340,7 +1757,7 @@ def load_dataset(
 
     valid_params = deepcopy(set_params)
     valid_params.randomize = 0.0
-    val_set = LocalDataset(
+    val_set = dataset_cls(
         np.load(split_path.joinpath(f"valid{setsuffix}.npy")),
         training=True,
         **valid_params,
