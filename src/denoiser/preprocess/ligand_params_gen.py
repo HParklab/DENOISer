@@ -48,7 +48,8 @@ class LigandParams:
 
     def save_params(self, complex_pdb: Optional[Path] = None) -> None:
         cur_dir = os.getcwd()
-        os.chdir(self.input_path)
+        # os.chdir(self.input_path)
+        os.chdir(self.output_path)
         if complex_pdb is None:
             complex_pdb = self.output_path.joinpath("holo.pdb")
         print("Ligand extract from", complex_pdb)
