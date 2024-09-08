@@ -8,3 +8,6 @@ src/denoiser/preprocess/__pycache__/
 *.pyc
 src/denoiser.egg-info
 temp.py
+scripts/benchmark/
+scripts/models/
+scripts/fine_tuning_gen_lig/

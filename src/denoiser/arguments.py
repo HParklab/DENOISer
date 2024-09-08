@@ -65,7 +65,7 @@ def set_arguments():
     return args
 
 
-def set_arguments_train():
+def set_arguments_train(notebook: bool = False):
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input_features")
     parser.add_argument("--model-name", default="test_train")
@@ -125,5 +125,8 @@ def set_arguments_train():
     parser.add_argument("--ball_radius", default=9)
     parser.add_argument("--edge_dist", default=(8.0, 4.5, 3.0))
 
-    args = parser.parse_args()
+    if notebook:
+        args = parser.parse_args(args=[])
+    else:
+        args = parser.parse_args()
     return args
