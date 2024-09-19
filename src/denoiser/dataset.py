@@ -1110,11 +1110,13 @@ class LocalDatasetFineTune(LocalDataset):
             samples, native_samples, dock_class, pindex = self.get_a_sample(
                 pname, index
             )
+            if samples is None:
+                return self._skip_getitem(info)
             prop = np.load(self.datadir / (pname + ".prop.npz"), allow_pickle=True)
             prop = prop[dock_class].tolist()
         except Exception as e:
             print("raise error:", e)
-            return LocalDataset._skip_getitem(info)
+            return self._skip_getitem(info)
 
         sname = samples["name"][pindex].reshape(self.subset_size, -1)
         info["pindex"] = pindex
@@ -1136,7 +1138,8 @@ class LocalDatasetFineTune(LocalDataset):
             charges_lig,
             aas_lig,
             repsatm_lig,
-        ) = self.per_ligand_features(samples, pindex)
+            info,
+        ) = self.per_ligand_features_lddtNoH(samples, pindex, info)
         if len(bnds_lig) == 0:
             return self._skip_getitem(info)
 
@@ -1432,12 +1435,14 @@ class LocalDatasetFineTune(LocalDataset):
         samples = np.load(self.datadir / (pname + ".lig.npz"), allow_pickle=True)
         # Set docking class in ['generated_ligands', 'model_dock', 'native_dock']
         dock_classes = list(samples)
+        if "native_dock" in dock_classes and len(dock_classes) == 1:
+            return None, None, None, None
 
         def prob_map(x):
             if "generated" in x or "model" in x:
                 p = 1.0
             else:
-                p = 0.1
+                p = 0
             return p
 
         p = np.array(list(map(prob_map, dock_classes)))
