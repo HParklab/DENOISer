@@ -146,13 +146,25 @@ def load_model(model_params, energy_model_params):
     return model, energy_model
 
 
-def add_final_score(df: pd.DataFrame, self_docking_mode: bool = False):
+def add_final_score(
+    df: pd.DataFrame, self_docking_mode: bool = False, scaling: str = "normalize"
+):
     def min_max_scaling(x):
         return (x - x.min()) / (x.max() - x.min())
 
-    df["pred_scaled"] = df.groupby("pname")["pred_fnat"].transform(min_max_scaling)
+    def normalize_scaling(x):
+        return (x - x.mean()) / (x.std())
+
+    if scaling == "normalize":
+        scaling_method = min_max_scaling
+    elif scaling == "standardize":
+        scaling_method = normalize_scaling
+    else:
+        raise ValueError
+
+    df["pred_scaled"] = df.groupby("pname")["pred_fnat"].transform(scaling_method)
     df["energy_i"] = -df["energy"]
-    df["energy_scaled"] = df.groupby("pname")["energy_i"].transform(min_max_scaling)
+    df["energy_scaled"] = df.groupby("pname")["energy_i"].transform(scaling_method)
     if self_docking_mode:
         df["consensus_score"] = df["pred_scaled"] * 0.1 + df["energy_scaled"] * 0.9
     else:
