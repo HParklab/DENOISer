@@ -1437,6 +1437,7 @@ class LocalDatasetFineTune(LocalDataset):
         dock_classes = list(samples)
         if "native_dock" in dock_classes and len(dock_classes) == 1:
             return None, None, None, None
+        dock_classes = ["generated_ligands", "model_dock"]
 
         def prob_map(x):
             if "generated" in x or "model" in x:
@@ -1500,6 +1501,42 @@ class LocalDatasetFineTune(LocalDataset):
         idx = list(samples["name"]).index("near_native.native")  # native structure
         native_ligand_xyz = samples["xyz"][idx]
         return native_ligand_xyz
+
+    def per_ligand_features_lddtNoH(self, samples, pindex, info):
+        noH_idx = ~np.char.startswith(samples["atypes_lig"], "H")
+        info["lig_no_h"] = torch.from_numpy(noH_idx).squeeze().to(torch.int)
+        xyz_ligs = samples["xyz"][pindex].reshape(
+            self.subset_size, -1, 3
+        )  # shape: (subset_size, atom_num, 3)
+        xyz_recs = samples["xyz_rec"][pindex].reshape(self.subset_size, -1, 3)
+        lddt = samples["lddt"][pindex].reshape(
+            self.subset_size, -1
+        )  # shape: (subset_size, num_atom_ligand)
+        fnat = samples["fnat"][pindex].reshape(
+            self.subset_size, -1
+        )  # shape: (subset_size, 1)
+
+        atypes_lig = samples["atypes_lig"][0]
+        bnds_lig = samples["bnds_lig"][0]
+        charges_lig = samples["charge_lig"][0]
+        aas_lig = samples["aas_lig"][0]
+
+        if "repsatm_lig" in samples:
+            repsatm_lig = samples["repsatm_lig"][0]
+        else:
+            repsatm_lig = 0
+        return (
+            xyz_ligs,
+            xyz_recs,
+            lddt,
+            fnat,
+            atypes_lig,
+            bnds_lig,
+            charges_lig,
+            aas_lig,
+            repsatm_lig,
+            info,
+        )
 
 
 def sample_uniform(fnats: np.ndarray):
@@ -1715,6 +1752,100 @@ def collate_training(samples):
         binfo["fnat"] = torch.tensor(binfo["fnat"])
         binfo["lddt"] = torch.cat(binfo["lddt"], axis=0)
         binfo["nligatms"] = torch.tensor(binfo["nligatms"])
+
+    except:
+        bgraph_atm, bgraph_high, bgraph_res = False, False, False
+
+    return bgraph_atm, bgraph_res, bgraph_high, binfo
+
+
+def collate_training_finetune(samples):
+    graphs_atm, graphs_res, graphs_high, info = samples[0]
+    if isinstance(graphs_atm, bool) and graphs_atm is False:
+        return False, False, False, info
+
+    binfo = {
+        "ligidx": [],
+        "r2a": [],
+        "fnat": [],
+        "lddt": [],
+        "pname": [],
+        "sname": [],
+        "nligatms": [],
+        "hbond_masks": [],
+        "polar_apolar_masks": [],
+        "apolar_apolar_masks": [],
+        "distance_masks": [],
+        "xtal_hbond_masks": [],
+        "xtal_polar_apolar_masks": [],
+        "xtal_apolar_apolar_masks": [],
+        "xtal_distance_masks": [],
+        "dist_rec_indices": [],
+        "lig_no_h_mask": [],
+    }
+    try:
+        bgraph_atm = dgl.batch(graphs_atm)
+        bgraph_res = dgl.batch(graphs_res)
+        bgraph_high = dgl.batch(graphs_high)
+
+        asum, bsum, lsum = 0, 0, 0
+        # Reformat r2a, ligidx
+        binfo["r2a"] = torch.zeros(
+            (bgraph_atm.number_of_nodes(), bgraph_res.number_of_nodes())
+        )
+
+        nligsum = sum([s.shape[1] for s in info["ligidx"]])
+        binfo["ligidx"] = torch.zeros((bgraph_atm.number_of_nodes(), nligsum))
+        binfo["high_ligidx"] = torch.zeros((bgraph_high.number_of_nodes(), nligsum))
+        binfo["sname"] = [s[0] for s in info["sname"]]
+        binfo["pname"] = [info["pname"]] * len(info["sname"])
+
+        for idx, (a, b) in enumerate(
+            zip(bgraph_atm.batch_num_nodes(), bgraph_res.batch_num_nodes())
+        ):
+            l = info["ligidx"][idx].shape[1]
+            binfo["ligidx"][asum : asum + a, lsum : lsum + l] = info["ligidx"][idx]
+
+            binfo["r2a"][asum : asum + a, bsum : bsum + b] = info["r2amap"][idx]
+            binfo["fnat"].append(info["fnat"][idx])
+            binfo["lddt"].append(info["lddt"][idx])
+            binfo["nligatms"].append(l)
+
+            binfo["hbond_masks"].append(info["hbond_masks"][idx])
+            binfo["polar_apolar_masks"].append(info["polar_apolar_masks"][idx])
+            binfo["apolar_apolar_masks"].append(info["apolar_apolar_masks"][idx])
+            binfo["distance_masks"].append(info["distance_masks"][idx])
+
+            binfo["xtal_hbond_masks"].append(info["xtal_hbond_masks"][idx])
+            binfo["xtal_polar_apolar_masks"].append(
+                info["xtal_polar_apolar_masks"][idx]
+            )
+            binfo["xtal_apolar_apolar_masks"].append(
+                info["xtal_apolar_apolar_masks"][idx]
+            )
+            binfo["xtal_distance_masks"].append(info["xtal_distance_masks"][idx])
+
+            binfo["dist_rec_indices"].append(info["dist_rec_indices"][idx])
+
+            binfo["lig_no_h_mask"].append(info["lig_no_h"])
+
+            asum += a
+            bsum += b
+            lsum += l
+
+        csum, lsum = 0, 0
+        for idx, c in enumerate(bgraph_high.batch_num_nodes()):
+            l = info["high_ligidx"][idx].shape[1]
+            binfo["high_ligidx"][csum : csum + c, lsum : lsum + l] = info[
+                "high_ligidx"
+            ][idx]
+            csum += c
+            lsum += l
+
+        binfo["fnat"] = torch.tensor(binfo["fnat"])
+        binfo["lddt"] = torch.cat(binfo["lddt"], axis=0)
+        binfo["nligatms"] = torch.tensor(binfo["nligatms"])
+        binfo["lig_no_h_mask"] = torch.cat(binfo["lig_no_h_mask"])
 
     except:
         bgraph_atm, bgraph_high, bgraph_res = False, False, False
@@ -2565,9 +2696,15 @@ def load_dataset_energy(
     split_path: Path,
     generator_params: EasyDict,
     setsuffix: str = "Clean_MT2",
+    gen_fine_tune: bool = False,
 ):
+    if gen_fine_tune:
+        dataset_cls = EnergyDatasetFineTune
+    else:
+        dataset_cls = EnergyDataset
+
     # Datasets
-    train_set = EnergyDataset(
+    train_set = dataset_cls(
         np.load(split_path.joinpath(f"train{setsuffix}.npy")),
         training=True,
         **set_params,
@@ -2575,7 +2712,7 @@ def load_dataset_energy(
 
     valid_params = deepcopy(set_params)
     valid_params.randomize = 0.0
-    val_set = EnergyDataset(
+    val_set = dataset_cls(
         np.load(split_path.joinpath(f"valid{setsuffix}.npy")),
         training=True,
         **valid_params,
