@@ -2691,6 +2691,272 @@ class EnergyDataset(torch.utils.data.Dataset):
         return False, False, info
 
 
+class EnergyDatasetFineTune(EnergyDataset):
+    def __getitem__(self, index):
+        info = {}
+        info["sname"] = "none"
+        if self.sample_mode == "serial":
+            ip = int(index / self.nsamples_per_p)
+            pname = self.proteins[ip]
+        else:
+            pname = self.proteins[index]
+        info["pname"] = pname
+
+        fname = self.datadir / (pname + ".lig.npz")
+        if not os.path.exists(fname):
+            return self._skip_getitem(info)
+        try:
+            samples_ros = self.get_all_energy(pname)
+            samples, dock_class, pindex = self.get_a_sample(pname, index, samples_ros)
+            if samples is None:
+                return self._skip_getitem(info)
+            prop = np.load(self.datadir / (pname + ".prop.npz"), allow_pickle=True)
+            prop = prop[dock_class].tolist()
+        except Exception as e:
+            print("raise error:", e)
+            return self._skip_getitem(info)
+
+        sname = samples["name"][pindex].reshape(self.subset_size, -1)
+        info["pindex"] = pindex
+        info["sname"] = sname
+
+        # Receptor features (prop)
+        charges_rec, atypes_rec, aas_rec, repsatm_idx, r2a, sasa_rec, reschain = (
+            self.receptor_features(prop)
+        )
+
+        # Ligand features (lig)
+        (
+            xyz_ligs,
+            xyz_recs,
+            _,
+            _,
+            atypes_lig,
+            bnds_lig,
+            charges_lig,
+            aas_lig,
+            repsatm_lig,
+        ) = self.per_ligand_features(samples, pindex, info)
+        if len(bnds_lig) == 0:
+            return self._skip_getitem(info)
+
+        # Rosetta_energy
+        rosetta_e = self.select_energy(samples_ros, sname)
+        if rosetta_e is None:
+            print("Raise error in getting rosetta Energy.")
+            return self._skip_getitem(info)
+
+        aas = np.concatenate([aas_lig, aas_rec]).astype(int)
+        aas1hot = np.eye(N_AATYPE)[aas]
+
+        # Representative atoms
+        r2a = np.concatenate([np.array([0 for _ in range(xyz_ligs.shape[1])]), r2a])
+        r2a1hot = np.eye(max(r2a) + 1)[r2a]
+        repsatm_idx = np.concatenate(
+            [
+                np.array(repsatm_lig),
+                np.array(repsatm_idx, dtype=int) + xyz_ligs.shape[1],
+            ]
+        )  # shape: (subset_size, num_atom_rep)
+
+        # Bond properties
+        bnds_rec = prop["bnds_rec"] + xyz_ligs.shape[1]  # shift index;
+
+        # Concatenate receptor & ligand: ligand comes first
+        charges = np.expand_dims(np.concatenate([charges_lig, charges_rec]), axis=1)
+        if self.normalize_q:
+            charges = 1.0 / (1.0 + np.exp(-2.0 * charges))
+
+        islig = np.array(
+            [1 for _ in range(xyz_ligs.shape[1])]
+            + [0 for _ in range(xyz_recs.shape[1])]
+        )
+        islig = np.expand_dims(islig, axis=1)
+
+        xyz = np.concatenate([xyz_ligs, xyz_recs], axis=1)
+        atypes = np.concatenate([atypes_lig, atypes_rec])
+        if "Null" in atypes:
+            print("There is 'Null' atom types in the PDB file. Skip this.")
+            return self._skip_getitem(info)
+        w_vdw = torch.tensor([self.W[atype] for atype in list(atypes)])  # vdw depth
+        s_vdw = torch.tensor([self.S[atype] for atype in list(atypes)])  # vdw radius
+
+        atypes_int = np.array(
+            [find_gentype2num(at) for at in atypes]
+        )  # string to integers
+        atypes = np.eye(max(gentype2num.values()) + 1)[atypes_int]
+
+        if samples["xyz_rec"].shape[1] != prop["xyz_rec"].shape[0]:
+            return self._skip_getitem(info)
+
+        sasa = []
+        sasa_lig = np.array([0.5 for _ in range(xyz_ligs.shape[1])])  # neutral value
+        sasa = np.concatenate([sasa_lig, sasa_rec])
+        sasa = np.expand_dims(sasa, axis=1)
+        bnds = np.concatenate([bnds_lig, bnds_rec])
+
+        # orient around ligand-COM
+        center_xyz = np.mean(xyz_ligs, axis=1)
+        center_xyz = np.expand_dims(center_xyz, axis=1)
+        xyz = xyz - center_xyz
+        xyz_ligs = xyz_ligs - center_xyz
+        center_xyz[:, :, :] = 0.0
+
+        ball_xyzs = []
+        if self.ballmode == "com":
+            ball_xyzs = [center_xyz]
+        elif self.ballmode == "all":
+            ball_xyzs = [[a[None, :] for a in xyz_lig] for xyz_lig in xyz_ligs]
+
+        # randomize coordinate
+        if self.randomize > 1e-3:
+            # randxyz = 2.0*self.randomize*(0.5 - np.random.rand(self.subset_size, xyz.shape[1],3)) # -0.2 ~ 0.2
+            randxyz = self.randomize * np.random.randn(
+                self.subset_size, xyz.shape[1], 3
+            )
+            xyz = xyz + randxyz
+
+        resfeat = [islig, aas1hot, sasa]
+        resfeat_extra = []  # from res-index
+
+        if self.use_AF:
+            # Dims: islig(1) + aas1hot(21) + atypes(65) + charges(1) -> 88
+            input_features = [islig, aas1hot, atypes, charges]
+
+            # AF features (dim=1) -> 89
+            input_features = self.add_extra_features(
+                input_features, pname, sname, prop, samples, self.training
+            )
+            if input_features is None:
+                return self._skip_getitem(info)
+
+            G_atm_list, idx_ord_list = [], []
+            for idx in range(self.subset_size):
+                G_atm, idx_ord = self.make_atm_graphs(
+                    xyz[idx],
+                    ball_xyzs[idx],
+                    input_features,
+                    bnds,
+                    xyz_ligs.shape[1],
+                    atypes_int,
+                    charges,
+                    s_vdw,
+                    w_vdw,
+                )
+                G_atm_list.append(G_atm)
+                idx_ord_list.append(idx_ord)
+        else:
+            G_atm_list, G_high_atm_list, idx_ord_list = [], [], []
+            for idx in range(self.subset_size):
+                G_atm, idx_ord = self.make_atm_graphs(
+                    xyz[idx],
+                    ball_xyzs[idx],
+                    [
+                        islig,
+                        aas1hot,
+                        atypes,
+                        charges,
+                    ],  # dims: islig(1) + aas1hot(33) + atypes(65) + charges(1) -> 100
+                    bnds,
+                    xyz_ligs.shape[1],
+                    atypes_int,
+                    charges,
+                    s_vdw,
+                    w_vdw,
+                )
+                G_atm_list.append(G_atm)
+                idx_ord_list.append(idx_ord)
+
+        info["islig"] = torch.tensor(islig).float()
+
+        # Reorder by where atm idx in G_atm are
+        rsds_ord_list = [r2a[idx_ord] for idx_ord in idx_ord_list]
+        G_res_list, r2amap_list = [], []
+        for idx in range(self.subset_size):
+            G_res, r2amap = self.make_res_graph(
+                xyz[idx],
+                center_xyz[idx],
+                resfeat,
+                repsatm_idx,
+                rsds_ord_list[idx],
+                resfeat_extra,
+            )
+            G_res_list.append(G_res)
+            r2amap_list.append(r2amap)
+
+        # store which indices go to ligand atms
+        ligidx_list = []
+        for idx in range(self.subset_size):
+            ligidx = np.zeros((len(idx_ord_list[idx]), xyz_ligs.shape[1]))
+            for i in range(xyz_ligs.shape[1]):
+                ligidx[i, i] = 1.0
+            ligidx_list.append(torch.tensor(ligidx).float())
+        info["ligidx"] = ligidx_list
+        info["rosetta_e"] = torch.tensor(np.array(rosetta_e)).float()
+        info["r2amap"] = [torch.tensor(r2amap).float() for r2amap in r2amap_list]
+        info["r2a"] = torch.tensor(r2a1hot).float()
+        info["repsatm_idx"] = torch.tensor(repsatm_idx).float()
+        return G_atm_list, G_res_list, G_high_atm_list, info
+
+    def get_a_sample(self, pname, index, samples_ros):
+        samples = np.load(self.datadir / (pname + ".lig.npz"), allow_pickle=True)
+        # Set docking class in ['generated_ligands', 'model_dock']
+        dock_classes = list(samples)
+
+        dock_class = np.random.choice(dock_classes)
+        samples = samples[dock_class].tolist()
+
+        pindices = list(range(len(samples["name"])))
+        names = samples["name"]
+        e_names = samples_ros["pdb"]
+        xsorted = np.argsort(e_names)
+        re_idx = xsorted[np.searchsorted(e_names[xsorted], names)]
+        vdw = samples_ros["vdw"][re_idx]
+        # Filtering repulsion
+        if self.sample_mode == "random":
+            pindex = np.random.choice(
+                pindices, size=self.subset_size, replace=False, p=self.upsample(vdw)
+            )
+        elif self.sample_mode == "serial":
+            pindex = [index % len(pindices)]
+        return samples, dock_class, pindex
+
+    def add_extra_features(
+        self, input_features, pname, sname, prop, samples, training: bool = False
+    ):
+        af_feature_path = (
+            Path(self.AF_plddt_path)
+            if self.AF_plddt_path is not None
+            else self.AF_plddt_path
+        )
+        sname = sname[0, 0]
+
+        if "native_dock" in sname or "near_native.native" in sname:
+            dir_name = "native_dock"
+        elif "model_dock_corina" in sname:
+            dir_name = "generated_ligands"
+        else:
+            dir_name = "model_dock"
+
+        if training and ("native_dock" in sname or "near_native.native" in sname):
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        elif af_feature_path is None:
+            af_feature = np.ones([samples["xyz_rec"].shape[1], 1])
+        else:
+            af_feature = np.load(
+                af_feature_path.joinpath(dir_name, f"{pname}_conf.npy")
+            )
+            af_feature = af_feature[prop["residue_idx"]]
+        lig_feature = np.zeros(
+            [samples["xyz"].shape[1], af_feature.shape[-1]]
+        )  # samples['xyz'].shape[1]: ligand atom num
+        af_feature = np.concatenate([lig_feature, af_feature], axis=0)
+
+        input_features.append(af_feature)
+
+        return input_features
+
+
 def load_dataset_energy(
     set_params: EasyDict,
     split_path: Path,
