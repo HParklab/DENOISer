@@ -52,7 +52,7 @@ class LigandParams:
         os.chdir(self.output_path)
         if complex_pdb is None:
             complex_pdb = self.output_path.joinpath("holo.pdb")
-        print("Ligand extract from", complex_pdb)
+        print("Extract Ligand from", complex_pdb)
 
         if self.ligand_mol2 is None:
             self.extract_ligand(complex_pdb, self.ligand_name)
@@ -82,6 +82,15 @@ class LigandParams:
                             if is_float(line.split()[-1]):
                                 atom = PDBLP.atom_name(line)
                                 atom = re.sub(r"[0-9]", "", atom)
+                                if atom.startswith("C") and atom.lower() != "cl":
+                                    atom = "C"
+                                elif len(atom) != 1 and atom.startswith("O"):
+                                    atom = "O"
+                                elif len(atom) != 1 and atom.startswith("H"):
+                                    atom = "H"
+                                elif len(atom) != 1 and atom.startswith("N"):
+                                    atom = "N"
+
                                 pad = (78 - len(line) - len(atom) + 1) * " "
                                 line = line.strip() + pad + atom + "\n"
                             f1.write(line)
@@ -97,14 +106,50 @@ class LigandParams:
         subprocess.run(args)
 
     def add_charge(self) -> None:
+        def get_mol2_anames(mol2_file):
+            check = 0
+            a_types = []
+            with open(mol2_file) as f:
+                for line in f:
+                    if line.startswith("@<TRIPOS>ATOM"):
+                        check = 1
+                        continue
+                    if check and line.startswith("@<TRIPOS>"):
+                        break
+                    if check:
+                        a_type = line.split()[1]
+                        a_types.append(a_type)
+            return a_types
+
         input_mol2 = (
             self.output_path / "LG.mol2"
             if self.ligand_mol2 is None
             else self.output_path / self.ligand_mol2
         )
         output_mol2 = self.output_path / "LG.mol2"
+        orig_names = get_mol2_anames(input_mol2)
         args = ["obabel", input_mol2, "-O", output_mol2, "--partialcharge", "mmff94"]
         subprocess.run(args)
+
+        # Replace atom names
+        with open(output_mol2) as f:
+            outlines = f.readlines()
+
+        check, idx = 0, 0
+        for i, line in enumerate(outlines):
+            if line.startswith("@<TRIPOS>ATOM"):
+                check = 1
+                continue
+            if check and line.startswith("@<TRIPOS>"):
+                break
+            if check:
+                orig_n = orig_names[idx]
+                outlines[i] = line[:8] + orig_n + line[8 + len(orig_n) :]
+                idx += 1
+
+        with open(output_mol2, "w") as f:
+            for line in outlines:
+                f.write(line)
 
     def generate_params(self) -> None:
         # conda_env = "/opt/conda/envs/gp/bin/python3.9"

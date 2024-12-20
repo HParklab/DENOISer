@@ -180,7 +180,7 @@ class Preprocess:
                             continue
                         else:
                             line = line[:17] + "LG1" + line[20:]
-                            line = line[:21] + "X" + line[22:]
+                            line = line[:21] + "X   1" + line[26:]
                             # For duplicated atom types in the ligand
                             if not self.skip_ligand_processing:
                                 # ligand_atom = PDBLP.atom_name(line)[:2]
@@ -333,7 +333,7 @@ class Preprocess:
 
     @staticmethod
     def hetatm_parsing(pdb_line: str) -> str:
-        return pdb_line[:17] + "LG1" + " " + "X" + pdb_line[22:]
+        return pdb_line[:17] + "LG1" + " " + "X   1" + pdb_line[26:]
 
     @property
     def repcom(self) -> str:

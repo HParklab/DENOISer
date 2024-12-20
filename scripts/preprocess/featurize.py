@@ -460,6 +460,8 @@ def featurize_complexes(
         # In training, calculate target labels
         _fnat, lddt_per_atm = 0.0, 0.0
         if training:
+            if len(_fnat_xyz_lig) == 0:
+                raise ValueError("There are no ligand atoms or check LG.params. PDB:" + pdb)
             _fnat, lddt_per_atm = per_atm_lddt(
                 _fnat_xyz_lig, _fnat_xyz_rec, dco, contacts
             )
